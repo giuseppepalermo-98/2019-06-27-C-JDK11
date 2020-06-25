@@ -5,8 +5,12 @@
 package it.polito.tdp.crimes;
 
 import java.net.URL;
+import java.time.LocalDate;
+import java.util.Date;
+import java.util.List;
 import java.util.ResourceBundle;
 
+import it.polito.tdp.crimes.db.Adiacenza;
 import it.polito.tdp.crimes.model.Model;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -25,16 +29,16 @@ public class CrimesController {
     private URL location;
 
     @FXML // fx:id="boxCategoria"
-    private ComboBox<?> boxCategoria; // Value injected by FXMLLoader
+    private ComboBox<String> boxCategoria; // Value injected by FXMLLoader
 
     @FXML // fx:id="boxGiorno"
-    private ComboBox<?> boxGiorno; // Value injected by FXMLLoader
+    private ComboBox<LocalDate> boxGiorno; // Value injected by FXMLLoader
 
     @FXML // fx:id="btnAnalisi"
     private Button btnAnalisi; // Value injected by FXMLLoader
 
     @FXML // fx:id="boxArco"
-    private ComboBox<?> boxArco; // Value injected by FXMLLoader
+    private ComboBox<Adiacenza> boxArco; // Value injected by FXMLLoader
 
     @FXML // fx:id="btnPercorso"
     private Button btnPercorso; // Value injected by FXMLLoader
@@ -45,13 +49,38 @@ public class CrimesController {
     @FXML
     void doCreaGrafo(ActionEvent event) {
     	txtResult.clear();
-    	txtResult.appendText("Crea grafo...\n");
+    	
+    	String categoria=this.boxCategoria.getValue();
+    	LocalDate data= this.boxGiorno.getValue();
+    	
+    	if(categoria == null || data == null) {
+    		this.txtResult.appendText("Errore devi selezionare i campi in maniera corretta");
+    		return;
+    	}
+    	
+    	this.model.creaGarfo(categoria, data);
+    	this.txtResult.appendText("Grafo creato!\n");
+    	
+    	this.boxArco.getItems().addAll(model.getArchi());
     }
 
     @FXML
     void doCalcolaPercorso(ActionEvent event) {
     	txtResult.clear();
-    	txtResult.appendText("Calcola percorso...\n");
+    	
+    	Adiacenza estremi = this.boxArco.getValue();
+    	
+    	if(estremi == null) {
+    		this.txtResult.appendText("ERRORE SELEZIONA UN ARCO");
+    		return;
+    	}
+    	
+    	List<String>percorso=this.model.calcolaPercorso(estremi);
+    	
+    	this.txtResult.appendText("Il percorso che comprende gli estremi selezionati più lungo è: \n");
+    	for(String s: percorso) {
+    		this.txtResult.appendText(s+"\n");
+    	}
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
@@ -67,5 +96,8 @@ public class CrimesController {
     
     public void setModel(Model model) {
     	this.model = model;
+    	
+    	this.boxCategoria.getItems().addAll(this.model.getCategorie());
+    	this.boxGiorno.getItems().addAll(this.model.getDay());
     }
 }
